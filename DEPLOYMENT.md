@@ -1,301 +1,294 @@
-# 🚀 EC2 Deployment Guide for Voice Command Shopping Assistant
+# Voice-Enabled Shopping Assistant - Deployment Guide
 
-This guide provides multiple deployment options for running your Voice Command Shopping Assistant on EC2 instance `13.203.224.91`.
+## 🚀 Quick Deployment for EC2 Instance (13.203.224.91)
+
+This guide will help you deploy the Voice-Enabled Shopping Assistant on your EC2 instance with Docker for permanent operation.
 
 ## 📋 Prerequisites
 
-### EC2 Security Group Configuration
-Make sure your EC2 security group allows inbound traffic on:
-- **Port 3000** (Frontend)
-- **Port 8000** (Backend API)
-- **Port 22** (SSH)
-- **Port 27017** (MongoDB - optional, for external access)
+- EC2 instance running Ubuntu 20.04+ with public IP: `13.203.224.91`
+- SSH access to the instance
+- At least 2GB RAM and 10GB storage
+- API keys for:
+  - Groq API (for LLM processing)
+  - AssemblyAI (for voice recognition)
+  - MongoDB Atlas connection string
 
-### Required API Keys
-You'll need API keys for:
-- **GROQ API** (for LLM processing)
-- **AssemblyAI** (for speech-to-text)
+## 🛠️ Architecture
 
-## 🎯 Deployment Options
-
-### Option 1: Quick Start (Recommended for Testing)
-
-The fastest way to get started:
-
-```bash
-# Make script executable
-chmod +x start.sh
-
-# Start all services
-./start.sh
-
-# Other commands
-./start.sh stop     # Stop services
-./start.sh restart  # Restart services
-./start.sh status   # Check status
-./start.sh logs     # View logs
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Frontend      │    │     Backend      │    │   MongoDB       │
+│   (React/Vite)  │◄──►│   (FastAPI)      │◄──►│   (Atlas)       │
+│   Port: 80      │    │   Port: 8000     │    │   Cloud         │
+│   Nginx         │    │   Python         │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-**Features:**
-- ✅ Simple and fast
-- ✅ Uses system Python and Node.js
-- ✅ Background processes with PID files
-- ✅ Automatic environment setup
+## 🚀 Automated Deployment
 
-### Option 2: Production Deployment (Recommended for Production)
-
-For a more robust deployment with PM2 process management:
+### Step 1: Clone and Setup
 
 ```bash
-# Make script executable
+# Clone your repository
+git clone <your-repo-url>
+cd Voice-enabled-shop-assistant
+
+# Make scripts executable
 chmod +x deploy.sh
-
-# Full deployment
-./deploy.sh
-
-# Other commands
-./deploy.sh stop     # Stop services
-./deploy.sh restart  # Restart services
-./deploy.sh status   # Check status
-./deploy.sh logs     # View PM2 logs
+chmod +x production-setup.sh
 ```
 
-**Features:**
-- ✅ PM2 process management
-- ✅ Automatic restarts on failure
-- ✅ Better logging and monitoring
-- ✅ Nginx reverse proxy option
-- ✅ Firewall configuration
-- ✅ Virtual environment isolation
-
-### Option 3: Docker Deployment (Recommended for Containerization)
-
-For containerized deployment with Docker:
+### Step 2: Configure Environment
 
 ```bash
-# Make script executable
-chmod +x docker-deploy.sh
+# Copy environment template
+cp .env.example .env
 
-# Deploy with Docker
-./docker-deploy.sh
-
-# Other commands
-./docker-deploy.sh start    # Start containers
-./docker-deploy.sh stop     # Stop containers
-./docker-deploy.sh restart  # Restart containers
-./docker-deploy.sh rebuild  # Rebuild images
-./docker-deploy.sh logs     # View container logs
-./docker-deploy.sh clean    # Clean environment
+# Edit with your actual API keys
+nano .env
 ```
 
-**Features:**
-- ✅ Complete containerization
-- ✅ MongoDB included
-- ✅ Easy scaling and management
-- ✅ Isolated environments
-- ✅ Production-ready Nginx setup
-
-## 🔧 Configuration
-
-### Environment Variables
-
-After running any deployment script, update the environment files:
-
-1. **Backend Environment** (`Voice-Command-Shopping-Assistant/.env`):
+Edit the `.env` file with your actual values:
 ```env
 GROQ_API_KEY=your_actual_groq_api_key
 ASSEMBLYAI_API_KEY=your_actual_assemblyai_api_key
-MONGO_URI=mongodb://localhost:27017
+MONGO_URI=mongodb+srv://TaskM:Psit2023@kilo.fblqh.mongodb.net/Unthinkable?retryWrites=true&w=majority
+ENVIRONMENT=production
+DEBUG=false
 ```
 
-2. **Frontend Environment** (`frontend/.env`):
-```env
-VITE_API_BASE_URL=http://13.203.224.91:8000
-VITE_DEFAULT_USER=testuser
-```
+### Step 3: Deploy the Application
 
-### EC2 Instance Setup
-
-1. **Connect to your EC2 instance:**
 ```bash
-ssh -i your-key.pem ubuntu@13.203.224.91
+# Run the deployment script
+./deploy.sh
 ```
 
-2. **Clone your repository:**
+### Step 4: Setup for Permanent Operation
+
 ```bash
-git clone https://github.com/your-username/Voice-enabled-shop-assistant.git
-cd Voice-enabled-shop-assistant
+# Setup production environment with auto-start
+./production-setup.sh
 ```
 
-3. **Run deployment script:**
+## 🔧 Manual Deployment (Alternative)
+
+If you prefer manual deployment:
+
+### Install Docker & Docker Compose
+
 ```bash
-chmod +x start.sh
-./start.sh
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Install Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+### Build and Run
+
+```bash
+# Build and start containers
+docker-compose build
+docker-compose up -d
+
+# Check status
+docker-compose ps
 ```
 
 ## 🌐 Access Your Application
 
 After successful deployment:
 
-- **Frontend Application:** http://13.203.224.91:3000
-- **Backend API:** http://13.203.224.91:8000
-- **API Documentation:** http://13.203.224.91:8000/docs
-- **Health Check:** http://13.203.224.91:8000/health
+- **Frontend**: http://13.203.224.91
+- **Backend API**: http://13.203.224.91:8000
+- **Health Check**: http://13.203.224.91:8000/health
+- **API Documentation**: http://13.203.224.91:8000/docs
 
-## 🔍 Troubleshooting
+## 📊 Management Commands
 
-### Common Issues and Solutions
+### Useful Aliases (Available after production setup)
 
-1. **Port Already in Use:**
 ```bash
-# Find process using port
-sudo lsof -i :3000
-sudo lsof -i :8000
-
-# Kill process
-sudo fuser -k 3000/tcp
-sudo fuser -k 8000/tcp
+vsa-status      # Check service status
+vsa-start       # Start the service
+vsa-stop        # Stop the service
+vsa-restart     # Restart the service
+vsa-logs        # View real-time logs
+vsa-monitor     # Health monitoring
+vsa-backup      # Create backup
 ```
 
-2. **Permission Denied:**
+### Docker Commands
+
 ```bash
-chmod +x deploy.sh
-chmod +x start.sh
-chmod +x docker-deploy.sh
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Stop services
+docker-compose down
+
+# Rebuild and restart
+docker-compose down && docker-compose build && docker-compose up -d
+
+# Check container status
+docker-compose ps
 ```
 
-3. **Node.js/Python Not Found:**
-```bash
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+## 🔒 Security Configuration
 
-# Install Python
-sudo apt update
-sudo apt install -y python3 python3-pip python3-venv
+The production setup automatically configures:
+
+- **Firewall (UFW)**:
+  - Port 22 (SSH)
+  - Port 80 (HTTP)
+  - Port 443 (HTTPS)
+  - Port 8000 (Backend API)
+
+- **Nginx Reverse Proxy**: Routes traffic efficiently
+- **Docker Security**: Non-root user containers
+- **Log Rotation**: Prevents disk space issues
+
+## 📈 Monitoring & Maintenance
+
+### Health Monitoring
+
+```bash
+# Quick health check
+~/monitor-voice-shopping.sh
+
+# Check service status
+systemctl status voice-shopping.service
 ```
 
-4. **MongoDB Connection Issues:**
+### Backup & Recovery
+
 ```bash
-# Start MongoDB
-sudo systemctl start mongod
-# OR
-sudo service mongodb start
+# Manual backup
+~/backup-voice-shopping.sh
+
+# Automatic daily backups are configured via cron
+# Backups stored in: ~/backups/
 ```
 
-5. **Docker Issues:**
+### Log Management
+
 ```bash
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
+# View application logs
+docker-compose logs backend
+docker-compose logs frontend
+
+# View system logs
+journalctl -u voice-shopping.service -f
 ```
 
-### Log Files
+## 🚨 Troubleshooting
 
-- **Quick Start:** `./backend.log`, `./frontend.log`
-- **Production:** PM2 logs via `pm2 logs`
-- **Docker:** `docker-compose logs`
+### Common Issues
 
-### Service Management
+1. **Port conflicts**:
+   ```bash
+   sudo netstat -tulpn | grep :80
+   sudo netstat -tulpn | grep :8000
+   ```
 
-#### Quick Start
+2. **API keys not working**:
+   ```bash
+   # Check environment variables
+   docker-compose exec backend env | grep API
+   ```
+
+3. **Database connection issues**:
+   ```bash
+   # Test MongoDB connection
+   docker-compose exec backend python -c "from db import client; print(client.admin.command('ping'))"
+   ```
+
+4. **Service not starting**:
+   ```bash
+   systemctl status voice-shopping.service
+   journalctl -u voice-shopping.service -n 50
+   ```
+
+### Recovery Commands
+
 ```bash
-./start.sh status  # Check status
-./start.sh logs    # View logs
+# Full reset and redeploy
+docker-compose down --volumes --remove-orphans
+docker system prune -f
+./deploy.sh
 ```
 
-#### Production (PM2)
+## 🔄 Updates & Upgrades
+
+### Application Updates
+
 ```bash
-pm2 status         # Check PM2 processes
-pm2 logs           # View all logs
-pm2 restart all    # Restart all processes
-pm2 monit          # Monitor processes
+# Pull latest code
+git pull origin main
+
+# Rebuild and redeploy
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
-#### Docker
+### System Maintenance
+
 ```bash
-docker-compose ps          # Check containers
-docker-compose logs -f     # Follow logs
-docker-compose restart     # Restart services
-```
+# Update system packages
+sudo apt update && sudo apt upgrade -y
 
-## 🔒 Security Considerations
+# Clean Docker resources
+docker system prune -f
 
-1. **API Keys:** Never commit API keys to version control
-2. **Firewall:** Configure EC2 security groups properly
-3. **HTTPS:** Consider SSL certificates for production
-4. **MongoDB:** Secure MongoDB with authentication
-5. **Updates:** Keep dependencies updated
-
-## 📊 Monitoring
-
-### Health Checks
-```bash
-# Backend health
-curl http://13.203.224.91:8000/health
-
-# Frontend availability
-curl http://13.203.224.91:3000
-
-# MongoDB connection
-curl http://13.203.224.91:8000/store
-```
-
-### Performance Monitoring
-```bash
-# System resources
-htop
-free -h
+# Check disk space
 df -h
-
-# Process monitoring (PM2)
-pm2 monit
-
-# Docker stats
-docker stats
 ```
-
-## 🚀 Production Optimizations
-
-1. **Use HTTPS with SSL certificates**
-2. **Set up a proper domain name**
-3. **Configure Nginx as reverse proxy**
-4. **Enable gzip compression**
-5. **Set up monitoring and alerts**
-6. **Configure automated backups**
-7. **Use a managed MongoDB service**
 
 ## 📞 Support
 
 If you encounter issues:
 
-1. Check the logs first
-2. Verify API keys are correct
-3. Ensure all ports are open in security groups
-4. Check system resources (disk space, memory)
-5. Restart services if needed
+1. Check the logs: `vsa-logs`
+2. Run health monitor: `vsa-monitor`
+3. Verify environment variables in `.env`
+4. Check firewall settings: `sudo ufw status`
+5. Ensure all API keys are valid
 
-## 🔄 Updates
+## 🎯 Performance Optimization
 
-To update your application:
+### Recommended EC2 Instance Types
 
-```bash
-# Pull latest changes
-git pull origin main
+- **Minimum**: t3.small (2 vCPU, 2GB RAM)
+- **Recommended**: t3.medium (2 vCPU, 4GB RAM)
+- **Production**: t3.large (2 vCPU, 8GB RAM)
 
-# Restart services based on your deployment method:
+### Storage Requirements
 
-# Quick Start
-./start.sh restart
-
-# Production
-pm2 restart all
-
-# Docker
-./docker-deploy.sh rebuild
-```
+- **Minimum**: 10GB
+- **Recommended**: 20GB
+- **Production**: 50GB+ with automated backups
 
 ---
 
-**Happy Shopping! 🛒✨**
+## 📝 Notes
+
+- The application will automatically start on system boot
+- Daily backups are scheduled at 2:00 AM
+- Log rotation is configured to prevent disk space issues
+- All services include health checks for monitoring
+- The deployment is optimized for production use on EC2
+
+**Your Voice-Enabled Shopping Assistant is now ready for production! 🎉**
