@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+assemblyai
+python-dotenv
+requests
+pymongo
+sentence-transformers
+faiss-cpu
+rapidfuzz
